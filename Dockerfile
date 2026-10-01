@@ -8,15 +8,15 @@ COPY tsconfig.base.json ./
 RUN bun run build
 
 # Runtime: Bun server + built client. Data lives in /data (a volume).
+# node_modules is copied from the build stage instead of reinstalled, so the
+# runtime uses exactly the dependency tree that was built and tested above.
 FROM oven/bun:1.3-slim
 WORKDIR /app
-ENV NODE_ENV=production \
-    PORT=3000 \
+ENV PORT=3000 \
     DATA_DIR=/data
-COPY package.json bun.lock ./
-# Note: no --frozen-lockfile here — the build stage above already fails fast
-# on lockfile drift; this flag combination is unreliable across bun versions.
-RUN bun install --production
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/bun.lock ./bun.lock
 COPY server ./server
 COPY drizzle ./drizzle
 COPY --from=build /app/client/dist ./client/dist
