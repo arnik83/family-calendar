@@ -1,6 +1,6 @@
-node_modules/
+# node_modules and client/dist are build inputs (built in CI), so they must
+# reach the Docker build context.
 data/
-client/dist/
 .git/
 .gitignore
 screenshots/
