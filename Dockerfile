@@ -14,7 +14,9 @@ ENV NODE_ENV=production \
     PORT=3000 \
     DATA_DIR=/data
 COPY package.json bun.lock ./
-RUN bun install --production --frozen-lockfile
+# Note: no --frozen-lockfile here — the build stage above already fails fast
+# on lockfile drift; this flag combination is unreliable across bun versions.
+RUN bun install --production
 COPY server ./server
 COPY drizzle ./drizzle
 COPY --from=build /app/client/dist ./client/dist
