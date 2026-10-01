@@ -9,7 +9,8 @@ import * as schema from "./schema";
 const here = dirname(fileURLToPath(import.meta.url));
 // In dev (bun ./server/src/index.ts) this is <repo>/data;
 // the folder is gitignored — each install gets its own database.
-const dataDir = join(here, "..", "..", "data");
+// Override with DATA_DIR to store the database somewhere else.
+const dataDir = process.env.DATA_DIR ?? join(here, "..", "..", "data");
 mkdirSync(dataDir, { recursive: true });
 
 const sqlite = new Database(join(dataDir, "family-calendar.db"));

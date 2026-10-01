@@ -40,6 +40,26 @@ Set `PORT` to change the port:
 PORT=8080 bun start
 ```
 
+Your data is stored in `./data/family-calendar.db` — set `DATA_DIR` to keep it elsewhere.
+
+## Install a released version
+
+Every release ships a ready-to-run tarball on the [Releases page](https://github.com/arnik83/family-calendar/releases). Download it, unpack it, then:
+
+```bash
+bun install --production
+bun start
+```
+
+## Docker
+
+```bash
+docker build -t family-calendar .
+docker run -d -p 3000:3000 -v family-calendar-data:/data --name family-calendar family-calendar
+```
+
+The database persists in the `family-calendar-data` volume. Set `-e PORT=...` to change the port.
+
 ## How it works
 
 - `server/src/index.ts` — tiny Bun HTTP server: serves the built client and a `POST /api/actions` JSON-RPC endpoint
