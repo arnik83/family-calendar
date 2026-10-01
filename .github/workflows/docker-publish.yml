@@ -5,6 +5,9 @@
 # Requires two repo secrets (Settings → Secrets and variables → Actions):
 #   DOCKERHUB_USERNAME — your Docker Hub username
 #   DOCKERHUB_TOKEN    — a Docker Hub access token (Account Settings → Security)
+#
+# Install and build run on the GitHub runner (where Bun is reliable) and the
+# Dockerfile only packages the result — no `bun install` inside the image.
 name: Docker Hub
 
 on:
@@ -17,6 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install, typecheck and build
+        run: |
+          bun install --frozen-lockfile
+          bun run typecheck
+          bun run build
 
       - name: Determine version tag
         id: tags
