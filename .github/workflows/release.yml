@@ -1,0 +1,71 @@
+# Cuts a GitHub Release (with a downloadable tarball) whenever the app
+# changes on main and the version in package.json has no release yet.
+# Release pages show public download counts per asset.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "bun.lock"
+      - "server/**"
+      - "client/**"
+      - "drizzle/**"
+      - "Dockerfile"
+      - ".github/workflows/release.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Build distributable tarball
+        id: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v$VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already exists — nothing to do."
+            exit 0
+          fi
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          bun install --frozen-lockfile
+          bun run typecheck
+          bun run build
+          STAGE="release-pkg/family-calendar"
+          mkdir -p "$STAGE/server" "$STAGE/client" "$STAGE/drizzle"
+          cp package.json bun.lock README.md LICENSE "$STAGE/"
+          cp -r server/src "$STAGE/server/"
+          cp -r client/dist "$STAGE/client/"
+          cp -r drizzle/. "$STAGE/drizzle/"
+          tar -czf "family-calendar-$TAG.tar.gz" -C release-pkg family-calendar
+          echo "archive=family-calendar-$TAG.tar.gz" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.pkg.outputs.exists == 'false'
+        run: |
+          gh release create "${{ steps.pkg.outputs.tag }}" \
+            "${{ steps.pkg.outputs.archive }}" \
+            --title "${{ steps.pkg.outputs.tag }}" \
+            --notes "Download the tarball below, unpack it, then:
+
+          \`\`\`bash
+          bun install --production
+          bun start
+          \`\`\`
+
+          Or run with Docker (see README). Your data is stored in \`./data/family-calendar.db\`; set \`DATA_DIR\` to move it elsewhere."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
