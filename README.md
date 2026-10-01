@@ -16,6 +16,12 @@ A free, self-hosted family calendar. One shared schedule for the whole household
 - **All-day events, locations, notes** — everything a family schedule needs, nothing it doesn't
 - **SQLite storage** — your data lives in a single local file; no account, no cloud, no tracking
 
+## Screenshots
+
+| Schedule | Holidays | Free after |
+|---|---|---|
+| ![Month schedule view](screenshots/schedule.png) | ![Holidays view](screenshots/holidays.png) | ![Free-after finder](screenshots/free-after.png) |
+
 ## Quickstart
 
 You need [Bun](https://bun.sh) 1.3+.
